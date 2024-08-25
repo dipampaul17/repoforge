@@ -2,10 +2,12 @@ import aiohttp
 import os
 import json
 from typing import Dict, Any
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 GPT_MODEL = "gpt-4"
 API_URL = "https://api.openai.com/v1/chat/completions"
 
+@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(5))
 async def gpt4_request(prompt: str, system_message: str) -> str:
     headers = {
         "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
