@@ -1,13 +1,18 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import LayoutLMv2Model
+from transformers import LayoutLMv2Model, LayoutLMv2Config
+from sentence_transformers import SentenceTransformer
+from sklearn.cluster import HDBSCAN
+import numpy as np
 
 class LayoutInterpreter(nn.Module):
     def __init__(self, input_dim=768, hidden_dim=256, output_dim=128, num_layers=2):
         super(LayoutInterpreter, self).__init__()
-        self.layoutlm = LayoutLMv2Model.from_pretrained("microsoft/layoutlmv2-base-uncased")
+        self.config = LayoutLMv2Config.from_pretrained("microsoft/layoutlmv2-base-uncased")
+        self.layoutlm = LayoutLMv2Model(self.config)
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, bidirectional=True)
+        self.attention = nn.MultiheadAttention(hidden_dim * 2, num_heads=8)
         self.fc = nn.Linear(hidden_dim * 2, output_dim)
         self.dropout = nn.Dropout(0.1)
 
@@ -18,8 +23,9 @@ class LayoutInterpreter(nn.Module):
                                 bbox=bbox)
         sequence_output = outputs.last_hidden_state
         lstm_out, _ = self.lstm(sequence_output)
-        lstm_out = self.dropout(lstm_out)
-        output = self.fc(lstm_out[:, -1, :])
+        attn_output, _ = self.attention(lstm_out, lstm_out, lstm_out)
+        attn_output = self.dropout(attn_output)
+        output = self.fc(attn_output.mean(dim=1))
         return F.normalize(output, p=2, dim=1)
 
 def process_layout_predictions(model, tokenizer, image, text):
@@ -28,26 +34,20 @@ def process_layout_predictions(model, tokenizer, image, text):
         output = model(**encoding)
     return output
 
-def cluster_embeddings(embeddings, eps=0.5, min_samples=2):
-    from sklearn.cluster import DBSCAN
-    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(embeddings.numpy())
-    return clustering.labels_
+def cluster_embeddings(embeddings, min_cluster_size=2, min_samples=1):
+    clusterer = HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples, metric='euclidean')
+    clusters = clusterer.fit_predict(embeddings.numpy())
+    return clusters
 
-def interpret_clusters(clusters, embeddings):
-    unique_clusters = set(clusters)
-    interpreted_structure = {}
-    for cluster in unique_clusters:
-        if cluster != -1:  # -1 is noise in DBSCAN
-            cluster_embeddings = embeddings[clusters == cluster]
-            avg_embedding = cluster_embeddings.mean(dim=0)
-            interpreted_name = interpret_embedding(avg_embedding)
-            interpreted_structure[interpreted_name] = None
-    return interpreted_structure
+sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
 
 def interpret_embedding(embedding):
-    # This function would typically use a trained model or API to interpret the embedding
-    # For demonstration, we'll return a placeholder name
-    return f"folder_{hash(tuple(embedding.numpy()))}"
+    # Convert embedding to text using Sentence Transformers
+    sentences = ["folder", "file", "config", "source", "test", "docs", "data"]
+    sentence_embeddings = sentence_model.encode(sentences)
+    similarities = np.dot(sentence_embeddings, embedding)
+    most_similar = sentences[np.argmax(similarities)]
+    return f"{most_similar}_{hash(tuple(embedding.numpy()))}"
 
 def build_directory_structure(interpreted_clusters):
     structure = {}
