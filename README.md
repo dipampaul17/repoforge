@@ -1,18 +1,13 @@
 # RepoForge
 
-RepoForge is a AI-driven CLI tool that leverages state-of-the-art AI models to generate complete repository structures from text descriptions or images. It simplifies project setup by creating comprehensive directory structures, .gitignore files, and Dockerfiles, allowing developers to focus on writing code.
+RepoForge is an AI-powered tool for generating repository structures from text descriptions or images. It streamlines project setup by creating comprehensive structures, including .gitignore files and Dockerfiles.
 
 ## Features
 
-- Create repository structures from text or image input
-- Support for GitHub, GitLab, Bitbucket, and Azure DevOps
-- Generates .gitignore and Dockerfile tailored to your project
-- Uses LayoutLMv2 and LSTM for advanced layout interpretation
-- HDBSCAN clustering for identifying directory structures
-- Semantic understanding with Sentence Transformers
-- Robust GPT-4 integration with retry mechanism
-- FastAPI server for easy integration with other tools
-- Async architecture for efficient request handling
+- Parse repository structures from text or images
+- Generate appropriate .gitignore files, Dockerfiles, and READMEs
+- Create repositories on multiple platforms (GitHub, GitLab, Bitbucket, Azure DevOps)
+- Provide a FastAPI-based HTTP server for easy integration
 
 ## Installation
 
@@ -22,19 +17,19 @@ pip install repoforge
 
 ## Usage
 
-### CLI
+### As a CLI tool
 
 ```bash
 repoforge create --platform github --name my-project --input "src/\n  main.py\ntests/\n  test_main.py"
 ```
 
-### Server
+### As a server
 
 ```bash
 uvicorn repoforge.main:app --reload
 ```
 
-### API
+### API Usage
 
 ```python
 import aiohttp
@@ -44,10 +39,10 @@ async def create_repo():
     async with aiohttp.ClientSession() as session:
         async with session.post(
             "http://localhost:8000/create_repo",
-            data={
+            json={
                 "platform": "github",
                 "name": "my-new-repo",
-                "input_type": "text", 
+                "input_type": "text",
                 "text": "src/\n  main.py\ntests/\n  test_main.py"
             }
         ) as response:
@@ -55,6 +50,16 @@ async def create_repo():
 
 asyncio.run(create_repo())
 ```
+
+## Configuration
+
+Set the following environment variables:
+
+- `GITHUB_TOKEN`: Your GitHub personal access token
+- `GITLAB_TOKEN`: Your GitLab personal access token
+- `BITBUCKET_TOKEN`: Your Bitbucket app password
+- `AZURE_DEVOPS_PAT`: Your Azure DevOps personal access token
+- `AZURE_DEVOPS_ORG`: Your Azure DevOps organization name
 
 ## Contributing
 
