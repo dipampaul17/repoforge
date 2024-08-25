@@ -41,8 +41,8 @@ print(response.json()["repo_url"])
 
 ## Contributing
 
-We welcome contributions! Check out our [Contributing Guide](CONTRIBUTING.md) for more details.
+We welcome contributions! Please fork or clone this repo.
 
 ## License
 
-RepoForge is MIT licensed. See [LICENSE](LICENSE) for details.
+RepoForge is MIT licensed.
