@@ -1,25 +1,43 @@
 # RepoForge
 
-RepoForge is a developer tool that leverages AI to generate repository structures from text descriptions or images. It streamlines project setup by creating comprehensive structures, including .gitignore files and Dockerfiles.
+RepoForge is a AI-driven CLI tool that leverages state-of-the-art AI models to generate complete repository structures from text descriptions or images. It simplifies project setup by creating comprehensive directory structures, .gitignore files, and Dockerfiles, allowing developers to focus on writing code.
 
-key features
+## Features
 
-- advanced layout interpretation using layoutlmv2 and lstm
-- clustering with hdbscan
-- semantic understanding with sentence transformers
-- gpt-4 integration with retry mechanism
+- Create repository structures from text or image input
+- Support for GitHub, GitLab, Bitbucket, and Azure DevOps
+- Generates .gitignore and Dockerfile tailored to your project
+- Uses LayoutLMv2 and LSTM for advanced layout interpretation
+- HDBSCAN clustering for identifying directory structures
+- Semantic understanding with Sentence Transformers
+- Robust GPT-4 integration with retry mechanism
+- FastAPI server for easy integration with other tools
+- Async architecture for efficient request handling
 
-quick start
-bashCopy# install
+## Installation
+
+```bash
 pip install repoforge
+```
 
-# use as a cli tool
+## Usage
+
+### CLI
+
+```bash
 repoforge create --platform github --name my-project --input "src/\n  main.py\ntests/\n  test_main.py"
+```
 
-# or run as a server
+### Server
+
+```bash
 uvicorn repoforge.main:app --reload
-api usage
-pythonCopyimport aiohttp
+```
+
+### API
+
+```python
+import aiohttp
 import asyncio
 
 async def create_repo():
@@ -29,7 +47,7 @@ async def create_repo():
             data={
                 "platform": "github",
                 "name": "my-new-repo",
-                "input_type": "text",
+                "input_type": "text", 
                 "text": "src/\n  main.py\ntests/\n  test_main.py"
             }
         ) as response:
@@ -38,10 +56,19 @@ async def create_repo():
 asyncio.run(create_repo())
 ```
 
-## contributing
+## Contributing
 
-contributions welcome! Please fork or clone this repo.
+We welcome contributions! Please fork or clone the repo to get started.
 
-## license
+## License
 
-RepoForge is MIT licensed.
+RepoForge is licensed under the MIT License.
+
+## Acknowledgements
+
+RepoForge is built using the following open source libraries:
+
+- [LayoutLMv2](https://github.com/microsoft/unilm/tree/master/layoutlmv2)
+- [Sentence Transformers](https://www.sbert.net/)
+- [HDBSCAN](https://hdbscan.readthedocs.io/)
+- [FastAPI](https://fastapi.tiangolo.com/)
